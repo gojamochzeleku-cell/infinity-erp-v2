@@ -1,12 +1,12 @@
 import os
-from sqlalchemy import create_engine
+import time
+from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./infinity_erp.db")
 
-# Fix URL scheme for SQLAlchemy + psycopg2
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
 elif DATABASE_URL.startswith("postgresql://"):
@@ -15,16 +15,22 @@ elif DATABASE_URL.startswith("postgresql://"):
 if DATABASE_URL.startswith("sqlite"):
     engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 else:
-    # 1. Force SSL by appending it directly to the URL parameters
     url_parts = urlparse(DATABASE_URL)
     query = parse_qs(url_parts.query)
     query['sslmode'] = ['require']
-    new_query = urlencode(query, doseq=True)
-    DATABASE_URL = urlunparse(url_parts._replace(query=new_query))
-    
-    # 2. pool_pre_ping=True fixes the "EOF detected" error. 
-    # It tests the connection before using it, preventing crashes from idle drops.
-    engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+    DATABASE_URL = urlunparse(url_parts._replace(query=urlencode(query, doseq=True)))
+    engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_timeout=30)
+
+    # ☁️ WARM-UP: Gently wake the sleeping cloud database with retries
+    for attempt in range(1, 8):
+        try:
+            with engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+            print("✅ Cloud database is awake and connected.")
+            break
+        except Exception as e:
+            print(f"⏳ Waking database... attempt {attempt}/7 ({type(e).__name__})")
+            time.sleep(4)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
