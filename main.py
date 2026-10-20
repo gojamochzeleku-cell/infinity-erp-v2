@@ -1050,3 +1050,20 @@ def submit_checklist(
     ))
     db.commit()
     return RedirectResponse(url="/document-registers?tab=checklist&msg=Daily+Checklist+Signed+and+Submitted", status_code=303)
+
+
+# --- TELEGRAM WEBHOOK (Listens for /start) ---
+@app.post("/webhook")
+async def telegram_webhook(request: Request):
+    try:
+        update = await request.json()
+        if "message" in update and "text" in update["message"]:
+            chat_id = update["message"]["chat"]["id"]
+            text = update["message"]["text"]
+            
+            if text == "/start":
+                msg = " <b>Welcome to Infinity ERP!</b>\n\nYour bot is successfully connected.\nYou will now receive real-time alerts for:\n• 📌 Task Assignments\n• 🚨 Blocked Tasks\n• ⚠️ Compliance Deadlines\n\nUse the buttons in the alerts to open your dashboard."
+                send_telegram_message(str(chat_id), msg)
+    except Exception as e:
+        print(f"Webhook error: {e}")
+    return {"ok": True}
