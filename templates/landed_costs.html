@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block page_title %}Landed Cost Management{% endblock %}
+{% block content %}
+<div class="space-y-8">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-white">Landed Cost Management</h1>
+            <p class="text-gray-400 mt-1">Track Freight, Customs, Insurance, and Transport costs per receipt.</p>
+        </div>
+        {% if request.query_params.get('success') == 'true' %}
+        <div class="bg-green-500/10 border border-green-500/50 text-green-400 px-4 py-2 rounded-lg flex items-center">
+            <i class="fas fa-check-circle mr-2"></i> Landed cost added!
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Add Cost Form -->
+        <div class="lg:col-span-1 bg-erp-card border border-erp-border rounded-xl p-6 h-fit sticky top-24">
+            <h3 class="text-lg font-semibold text-white mb-6 flex items-center">
+                <i class="fas fa-file-invoice-dollar text-erp-gold mr-2"></i> Add Import Expense
+            </h3>
+            <form action="/api/landed-costs" method="POST" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Link to Receipt</label>
+                    <select name="receipt_id" required class="w-full bg-erp-dark border border-erp-border rounded-lg px-4 py-3 text-white focus:border-erp-gold focus:outline-none">
+                        {% for r in receipts %}
+                        <option value="{{ r.id }}">{{ r.receipt_number }} (PO: {{ r.po_id }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Cost Type</label>
+                    <select name="cost_type" required class="w-full bg-erp-dark border border-erp-border rounded-lg px-4 py-3 text-white focus:border-erp-gold focus:outline-none">
+                        <option value="FREIGHT">Freight / Shipping</option>
+                        <option value="CUSTOMS">Customs Duty</option>
+                        <option value="INSURANCE">Insurance</option>
+                        <option value="TRANSPORT">Local Transport</option>
+                        <option value="OTHER">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Amount (ETB)</label>
+                    <input type="number" step="0.01" name="amount" required class="w-full bg-erp-dark border border-erp-border rounded-lg px-4 py-3 text-white focus:border-erp-gold focus:outline-none">
+                </div>
+                <textarea name="notes" rows="2" placeholder="Notes (e.g., Invoice #123)" class="w-full bg-erp-dark border border-erp-border rounded-lg px-4 py-3 text-white focus:border-erp-gold focus:outline-none"></textarea>
+                <button type="submit" class="w-full bg-erp-gold hover:bg-erp-gold-dark text-black font-bold py-3 rounded-lg transition-colors">
+                    Record Expense
+                </button>
+            </form>
+        </div>
+
+        <!-- Cost History -->
+        <div class="lg:col-span-2 bg-erp-card border border-erp-border rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-white mb-6 flex items-center">
+                <i class="fas fa-history text-erp-gold mr-2"></i> Import Expense Log
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b border-erp-border text-gray-400 text-sm">
+                            <th class="pb-4 font-medium">Date</th>
+                            <th class="pb-4 font-medium">Receipt Ref</th>
+                            <th class="pb-4 font-medium">Type</th>
+                            <th class="pb-4 font-medium text-right">Amount (ETB)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-erp-border">
+                        {% for cost in costs %}
+                        <tr class="hover:bg-erp-dark/50 transition-colors">
+                            <td class="py-4 text-gray-400 text-sm">{{ cost.date.strftime('%Y-%m-%d') }}</td>
+                            <td class="py-4 text-white font-medium">REC-{{ cost.receipt_id }}</td>
+                            <td class="py-4">
+                                <span class="px-2 py-1 rounded text-xs font-semibold bg-blue-500/20 text-blue-400">{{ cost.cost_type }}</span>
+                            </td>
+                            <td class="py-4 text-right text-erp-gold font-mono font-bold">{{ "{:,.2f}".format(cost.amount) }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="py-8 text-center text-gray-500">No landed costs recorded yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

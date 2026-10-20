@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+venv/
+.venv/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Secrets & Config
+.env
+telegram_config.json
+uploads/
+
+# IDE
+.vscode/
+.idea/

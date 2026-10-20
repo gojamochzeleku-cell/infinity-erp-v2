@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block page_title %}Group Reporting{% endblock %}
+{% block content %}
+<div class="space-y-8">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-white">Group Consolidated Reports</h1>
+            <p class="text-gray-400 mt-1">Cross-company operational and financial summaries.</p>
+        </div>
+        <div class="bg-erp-gold/10 border border-erp-gold/30 text-erp-gold px-4 py-2 rounded-lg flex items-center text-sm">
+            <i class="fas fa-shield-alt mr-2"></i> Admin View Only
+        </div>
+    </div>
+
+    <!-- Group Totals Banner -->
+    <div class="bg-gradient-to-r from-erp-card to-erp-dark border border-erp-gold/30 rounded-2xl p-6">
+        <h3 class="text-erp-gold font-semibold mb-4 flex items-center">
+            <i class="fas fa-globe mr-2"></i> Infinity Group Consolidated Totals
+        </h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div>
+                <p class="text-gray-400 text-xs uppercase tracking-wider">Total Employees</p>
+                <p class="text-2xl font-bold text-white mt-1">{{ group_totals.employees }}</p>
+            </div>
+            <div>
+                <p class="text-gray-400 text-xs uppercase tracking-wider">Active POs</p>
+                <p class="text-2xl font-bold text-white mt-1">{{ group_totals.active_pos }}</p>
+            </div>
+            <div>
+                <p class="text-gray-400 text-xs uppercase tracking-wider">Inventory Value</p>
+                <p class="text-2xl font-bold text-erp-gold mt-1">ETB {{ "{:,.2f}".format(group_totals.inventory_value) }}</p>
+            </div>
+            <div>
+                <p class="text-gray-400 text-xs uppercase tracking-wider">Posted Journals</p>
+                <p class="text-2xl font-bold text-white mt-1">{{ group_totals.journal_entries }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Company Breakdown Table -->
+    <div class="bg-erp-card border border-erp-border rounded-xl p-6">
+        <h3 class="text-lg font-semibold text-white mb-6 flex items-center">
+            <i class="fas fa-building text-erp-gold mr-2"></i> Entity Breakdown
+        </h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b border-erp-border text-gray-400 text-sm uppercase tracking-wider">
+                        <th class="pb-4 font-medium">Company Code</th>
+                        <th class="pb-4 font-medium">Entity Name</th>
+                        <th class="pb-4 font-medium text-right">Employees</th>
+                        <th class="pb-4 font-medium text-right">Active POs</th>
+                        <th class="pb-4 font-medium text-right">Inventory Value (ETB)</th>
+                        <th class="pb-4 font-medium text-right">Posted Journals</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-erp-border">
+                    {% for row in report_data %}
+                    <tr class="hover:bg-erp-dark/50 transition-colors">
+                        <td class="py-4 text-erp-gold font-mono font-bold">{{ row.code }}</td>
+                        <td class="py-4 text-white font-medium">{{ row.name }}</td>
+                        <td class="py-4 text-right text-gray-300">{{ row.employees }}</td>
+                        <td class="py-4 text-right">
+                            <span class="px-2 py-1 rounded text-xs font-semibold {% if row.active_pos > 0 %}bg-yellow-500/20 text-yellow-400{% else %}bg-gray-500/20 text-gray-400{% endif %}">
+                                {{ row.active_pos }}
+                            </span>
+                        </td>
+                        <td class="py-4 text-right text-white font-mono">{{ "{:,.2f}".format(row.inventory_value) }}</td>
+                        <td class="py-4 text-right text-gray-300">{{ row.journal_entries }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

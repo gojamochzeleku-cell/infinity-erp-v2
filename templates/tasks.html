@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block page_title %}Task Management{% endblock %}
+{% block content %}
+<div class="space-y-8">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-white">Task Management</h1>
+            <p class="text-gray-400 mt-1">Assign, track, and manage operational workflows.</p>
+        </div>
+        {% if request.query_params.get('success') == 'true' %}
+        <div class="bg-green-500/10 border border-green-500/50 text-green-400 px-4 py-2 rounded-lg flex items-center">
+            <i class="fas fa-check-circle mr-2"></i> Task created successfully!
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Create Task Form -->
+        <div class="lg:col-span-1 bg-erp-card border border-erp-border rounded-xl p-6 h-fit sticky top-24">
+            <h3 class="text-lg font-semibold text-white mb-6 flex items-center">
+                <i class="fas fa-plus-circle text-erp-gold mr-2"></i> Create New Task
+            </h3>
+            <form action="/api/tasks" method="POST" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Task Title</label>
+                    <input type="text" name="title" required class="w-full bg-erp-dark border border-erp-border rounded-lg px-4 py-3 text-white focus:border-erp-gold focus:outline-none" placeholder="e.g., Review Monthly Reports">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Description</label>
+                    <textarea name="description" rows="3" class="w-full bg-erp-dark border border-erp-border rounded-lg px-4 py-3 text-white focus:border-erp-gold focus:outline-none" placeholder="Details about the task..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Assign To</label>
+                    <select name="assigned_to" required class="w-full bg-erp-dark border border-erp-border rounded-lg px-4 py-3 text-white focus:border-erp-gold focus:outline-none">
+                        {% for emp in employees %}
+                        <option value="{{ emp.id }}">{{ emp.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Priority</label>
+                    <select name="priority" class="w-full bg-erp-dark border border-erp-border rounded-lg px-4 py-3 text-white focus:border-erp-gold focus:outline-none">
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM" selected>Medium</option>
+                        <option value="HIGH">High</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-erp-gold hover:bg-erp-gold-dark text-black font-bold py-3 rounded-lg transition-colors mt-4">
+                    Assign Task
+                </button>
+            </form>
+        </div>
+
+        <!-- Task Board -->
+        <div class="lg:col-span-2 bg-erp-card border border-erp-border rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-white mb-6 flex items-center">
+                <i class="fas fa-tasks text-erp-gold mr-2"></i> Active Tasks
+            </h3>
+            <div class="space-y-4">
+                {% for task in tasks %}
+                <div class="bg-erp-dark border border-erp-border rounded-lg p-4 hover:border-erp-gold/50 transition-colors">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="text-white font-medium text-lg">{{ task.title }}</h4>
+                        <span class="px-2 py-1 rounded text-xs font-semibold 
+                            {% if task.priority == 'HIGH' %}bg-red-500/20 text-red-400
+                            {% elif task.priority == 'MEDIUM' %}bg-yellow-500/20 text-yellow-400
+                            {% else %}bg-blue-500/20 text-blue-400{% endif %}">
+                            {{ task.priority }}
+                        </span>
+                    </div>
+                    <p class="text-gray-400 text-sm mb-4">{{ task.description or 'No description provided.' }}</p>
+                    
+                    <div class="flex items-center justify-between border-t border-erp-border pt-3">
+                        <div class="flex items-center space-x-4 text-sm text-gray-400">
+                            <span><i class="fas fa-user mr-1"></i> Assigned</span>
+                            <span><i class="fas fa-calendar mr-1"></i> {{ task.created_at }}</span>
+                        </div>
+                        
+                        <form action="/api/tasks/{{ task.id }}/status" method="POST" class="flex items-center space-x-2">
+                            <select name="new_status" onchange="this.form.submit()" class="bg-erp-black border border-erp-border rounded px-3 py-1 text-sm text-white focus:border-erp-gold focus:outline-none">
+                                <option value="TODO" {% if task.status == 'TODO' %}selected{% endif %}>To Do</option>
+                                <option value="IN_PROGRESS" {% if task.status == 'IN_PROGRESS' %}selected{% endif %}>In Progress</option>
+                                <option value="REVIEW" {% if task.status == 'REVIEW' %}selected{% endif %}>Review</option>
+                                <option value="DONE" {% if task.status == 'DONE' %}selected{% endif %}>Done</option>
+                            </select>
+                        </form>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center text-gray-500 py-8">
+                    <i class="fas fa-clipboard-check text-3xl mb-3 block text-erp-border"></i>
+                    No tasks found. Create your first task.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

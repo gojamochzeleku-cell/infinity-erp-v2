@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Infinity ERP - {% block page_title %}Dashboard{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'erp-black': '#0a0a0a', 'erp-dark': '#141414', 'erp-card': '#1a1a1a',
+                        'erp-border': '#2a2a2a', 'erp-gold': '#D4AF37', 'erp-gold-light': '#F3E5AB', 'erp-gold-dark': '#AA8C2C',
+                        'erp-green': '#10B981', 'erp-blue': '#3B82F6', 'erp-red': '#EF4444'
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .text-gold-gradient { background: linear-gradient(135deg, #D4AF37 0%, #F3E5AB 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .bottom-nav { box-shadow: 0 -4px 20px rgba(0,0,0,0.4); }
+        .nav-item.active { color: #D4AF37; }
+        .nav-item.active i { transform: translateY(-2px); }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 4px; }
+    </style>
+<style>[x-cloak] { display: none !important; }</style>
+
+    <style>
+        @keyframes slide-loading {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+        }
+        .animate-slide-loading {
+            animation: slide-loading 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+    </style>
+    
+</head>
+
+    <!-- Cinematic Welcome Screen -->
+    <div x-data="{ showWelcome: true }" 
+         x-init="setTimeout(() => showWelcome = false, 3500)" 
+         x-show="showWelcome" 
+         x-transition:enter="transition ease-out duration-700"
+         x-transition:enter-start="opacity-0 scale-90"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-500"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-[100] bg-erp-black flex items-center justify-center">
+        <div class="text-center space-y-6">
+            <div class="text-6xl md:text-8xl font-extrabold text-gold-gradient tracking-tighter drop-shadow-2xl">
+                INFINITY
+            </div>
+            <div class="text-sm md:text-lg text-gray-400 tracking-[0.5em] font-light uppercase">
+                Investment Institute
+            </div>
+            <div class="pt-4 w-48 mx-auto h-0.5 bg-erp-border rounded-full overflow-hidden">
+                <div class="h-full w-1/2 bg-erp-gold animate-slide-loading"></div>
+            </div>
+        </div>
+    </div>
+
+<body class="bg-erp-black text-gray-200 min-h-screen pb-24" x-data="{ sidebarOpen: false }">
+    {% set vm = get_visible_modules(current_emp.job_title) if current_emp else ['workspace'] %}
+    <!-- Top Header -->
+    <header class="bg-erp-dark border-b border-erp-border sticky top-0 z-50">
+        <div class="flex items-center justify-between px-4 py-3">
+            <div class="flex items-center space-x-3">
+                <div class="text-2xl font-bold text-gold-gradient tracking-wider">INFINITY</div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div class="text-right hidden sm:block">
+                    <div class="text-sm font-semibold text-white">{{ current_emp.job_title or 'User' }}</div>
+                    <div class="text-xs text-gray-500">General Manager</div>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-erp-gold to-erp-gold-dark flex items-center justify-center text-black font-bold text-sm">
+                    {{ current_emp.name[0].upper() if current_emp else 'U' }}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="p-4 space-y-4">{% block content %}{% endblock %}</main>
+
+        <!-- Bottom Navigation -->
+    <nav class="bottom-nav fixed bottom-0 left-0 right-0 bg-erp-dark border-t border-erp-border px-4 py-2 z-50">
+        <div class="flex items-center justify-around max-w-md mx-auto">
+            {% if 'CEO' in current_emp.job_title or 'Vice CEO' in current_emp.job_title %}
+                <!-- CEO/Vice CEO Simplified Nav -->
+                <a href="/" class="nav-item flex flex-col items-center space-y-1 p-2 {% if active == 'dashboard' %}active{% endif %}">
+                    <i class="fas fa-home text-xl transition-transform"></i>
+                    <span class="text-xs font-medium">Home</span>
+                </a>
+                <a href="/executive" class="nav-item flex flex-col items-center space-y-1 p-2 {% if active == 'executive' %}active{% endif %}">
+                    <i class="fas fa-crown text-xl transition-transform"></i>
+                    <span class="text-xs font-medium">Executive</span>
+                </a>
+                <a href="/logout" class="nav-item flex flex-col items-center space-y-1 p-2 text-gray-400 hover:text-erp-red transition-colors">
+                    <i class="fas fa-sign-out-alt text-xl transition-transform"></i>
+                    <span class="text-xs font-medium">Logout</span>
+                </a>
+            {% else %}
+                <!-- Standard Employee Nav -->
+                {% if 'all' in vm or 'tasks' in vm %}
+                <a href="/tasks" class="nav-item flex flex-col items-center space-y-1 p-2 {% if active == 'tasks' %}active{% endif %}">
+                    <i class="fas fa-check-circle text-xl transition-transform"></i>
+                    <span class="text-xs font-medium">Tasks</span>
+                </a>
+                {% endif %}
+                <a href="#" class="nav-item flex flex-col items-center space-y-1 p-2" @click="sidebarOpen = !sidebarOpen">
+                    <i class="fas fa-bars text-xl transition-transform"></i>
+                    <span class="text-xs font-medium">Modules</span>
+                </a>
+                <a href="/logout" class="nav-item flex flex-col items-center space-y-1 p-2 text-gray-400 hover:text-erp-red transition-colors">
+                    <i class="fas fa-sign-out-alt text-xl transition-transform"></i>
+                    <span class="text-xs font-medium">Logout</span>
+                </a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Side Menu Overlay -->
+    <div x-show="sidebarOpen" class="fixed inset-0 z-50" style="display: none;">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="sidebarOpen = false"></div>
+        <div class="absolute right-0 top-0 bottom-0 w-64 bg-erp-dark border-l border-erp-border p-4 overflow-y-auto"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="translate-x-full"
+             x-transition:enter-end="translate-x-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="translate-x-0"
+             x-transition:leave-end="translate-x-full">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold text-white">Modules</h3>
+                <button @click="sidebarOpen = false" class="text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+                                    <nav class="space-y-2">
+                {% if 'CEO' in current_emp.job_title or 'Vice CEO' in current_emp.job_title %}
+                    <!-- CEO/Vice CEO Side Menu: ONLY Executive Command -->
+                    <a href="/executive" class="flex items-center space-x-3 px-4 py-3 rounded-lg {% if active == 'executive' %}bg-erp-gold/10 text-erp-gold{% else %}text-gray-400 hover:bg-erp-card hover:text-white{% endif %}">
+                        <i class="fas fa-crown w-5"></i><span>Executive Command</span>
+                    </a>
+                {% else %}
+                    <!-- Standard Employee Role-Based Side Menu -->
+                    <a href="/workspace" class="flex items-center space-x-3 px-4 py-3 rounded-lg {% if active == 'workspace' %}bg-erp-gold/10 text-erp-gold{% else %}text-gray-400 hover:bg-erp-card hover:text-white{% endif %}">
+                        <i class="fas fa-user-astronaut w-5"></i><span>My Workspace</span>
+                    </a>
+                    {% if 'all' in vm or 'tasks' in vm %}
+                    <a href="/tasks" class="flex items-center space-x-3 px-4 py-3 rounded-lg {% if active == 'tasks' %}bg-erp-gold/10 text-erp-gold{% else %}text-gray-400 hover:bg-erp-card hover:text-white{% endif %}">
+                        <i class="fas fa-check-circle w-5"></i><span>Tasks</span>
+                    </a>
+                    {% endif %}
+                    {% if 'all' in vm or 'tender' in vm %}
+                    <a href="/tender" class="flex items-center space-x-3 px-4 py-3 rounded-lg {% if active == 'tender' %}bg-erp-gold/10 text-erp-gold{% else %}text-gray-400 hover:bg-erp-card hover:text-white{% endif %}">
+                        <i class="fas fa-gavel w-5"></i><span>Tender</span>
+                    </a>
+                    {% endif %}
+                    {% if 'all' in vm or 'employees' in vm %}
+                    <a href="/employees" class="flex items-center space-x-3 px-4 py-3 rounded-lg {% if active == 'employees' %}bg-erp-gold/10 text-erp-gold{% else %}text-gray-400 hover:bg-erp-card hover:text-white{% endif %}">
+                        <i class="fas fa-users w-5"></i><span>Employees</span>
+                    </a>
+                    {% endif %}
+                    {% if 'all' in vm or 'receiving' in vm %}
+                    <a href="/receiving" class="flex items-center space-x-3 px-4 py-3 rounded-lg {% if active == 'receiving' %}bg-erp-gold/10 text-erp-gold{% else %}text-gray-400 hover:bg-erp-card hover:text-white{% endif %}">
+                        <i class="fas fa-box-open w-5"></i><span>Goods Receiving</span>
+                    </a>
+                    {% endif %}
+                    {% if 'all' in vm or 'inventory' in vm %}
+                    <a href="/inventory" class="flex items-center space-x-3 px-4 py-3 rounded-lg {% if active == 'inventory' %}bg-erp-gold/10 text-erp-gold{% else %}text-gray-400 hover:bg-erp-card hover:text-white{% endif %}">
+                        <i class="fas fa-warehouse w-5"></i><span>Inventory</span>
+                    </a>
+                    {% endif %}
+                    {% if 'all' in vm or 'accounting' in vm %}
+                    <a href="/accounts" class="flex items-center space-x-3 px-4 py-3 rounded-lg {% if active == 'accounts' %}bg-erp-gold/10 text-erp-gold{% else %}text-gray-400 hover:bg-erp-card hover:text-white{% endif %}">
+                        <i class="fas fa-calculator w-5"></i><span>Accounting</span>
+                    </a>
+                    {% endif %}
+                    {% if 'all' in vm or 'journal' in vm %}
+                    <a href="/journal" class="flex items-center space-x-3 px-4 py-3 rounded-lg {% if active == 'journal' %}bg-erp-gold/10 text-erp-gold{% else %}text-gray-400 hover:bg-erp-card hover:text-white{% endif %}">
+                        <i class="fas fa-pen-fancy w-5"></i><span>Journal</span>
+                    </a>
+                    {% endif %}
+                    {% if 'all' in vm or 'suppliers' in vm %}
+                    <a href="/suppliers" class="flex items-center space-x-3 px-4 py-3 rounded-lg {% if active == 'suppliers' %}bg-erp-gold/10 text-erp-gold{% else %}text-gray-400 hover:bg-erp-card hover:text-white{% endif %}">
+                        <i class="fas fa-truck-loading w-5"></i><span>Suppliers</span>
+                    </a>
+                    {% endif %}
+                    {% if 'all' in vm or 'customers' in vm %}
+                    <a href="/customers" class="flex items-center space-x-3 px-4 py-3 rounded-lg {% if active == 'customers' %}bg-erp-gold/10 text-erp-gold{% else %}text-gray-400 hover:bg-erp-card hover:text-white{% endif %}">
+                        <i class="fas fa-user-tie w-5"></i><span>Customers</span>
+                    </a>
+                    {% endif %}
+                    {% if 'all' in vm or 'invoices' in vm %}
+                    <a href="/invoices" class="flex items-center space-x-3 px-4 py-3 rounded-lg {% if active == 'invoices' %}bg-erp-gold/10 text-erp-gold{% else %}text-gray-400 hover:bg-erp-card hover:text-white{% endif %}">
+                        <i class="fas fa-file-invoice w-5"></i><span>Invoices</span>
+                    </a>
+                    {% endif %}
+                    {% if 'all' in vm or 'landed_costs' in vm %}
+                    <a href="/landed-costs" class="flex items-center space-x-3 px-4 py-3 rounded-lg {% if active == 'landed_costs' %}bg-erp-gold/10 text-erp-gold{% else %}text-gray-400 hover:bg-erp-card hover:text-white{% endif %}">
+                        <i class="fas fa-file-invoice-dollar w-5"></i><span>Landed Costs</span>
+                    </a>
+                    {% endif %}
+                    {% if 'all' in vm or 'reports' in vm %}
+                    <a href="/kpi-dashboard" class="flex items-center space-x-3 px-4 py-3 rounded-lg {% if active == 'kpi_dashboard' %}bg-erp-gold/10 text-erp-gold{% else %}text-gray-400 hover:bg-erp-card hover:text-white{% endif %}">
+                        <i class="fas fa-chart-line w-5"></i><span>KPI & SOP Workflows</span>
+                    </a>
+                    <a href="/compliance" class="flex items-center space-x-3 px-4 py-3 rounded-lg {% if active == 'compliance' %}bg-erp-gold/10 text-erp-gold{% else %}text-gray-400 hover:bg-erp-card hover:text-white{% endif %}">
+                        <i class="fas fa-calendar-check w-5"></i><span>Compliance Calendar</span>
+                    </a>
+                    <a href="/document-registers" class="flex items-center space-x-3 px-4 py-3 rounded-lg {% if active == 'document_registers' %}bg-erp-gold/10 text-erp-gold{% else %}text-gray-400 hover:bg-erp-card hover:text-white{% endif %}">
+                        <i class="fas fa-clipboard-list w-5"></i><span>Document Registers</span>
+                    </a>
+                    <a href="/document-library" class="flex items-center space-x-3 px-4 py-3 rounded-lg {% if active == 'document_library' %}bg-erp-gold/10 text-erp-gold{% else %}text-gray-400 hover:bg-erp-card hover:text-white{% endif %}">
+                        <i class="fas fa-folder-open w-5"></i><span>Document Library</span>
+                    </a>
+                    <a href="/reports" class="flex items-center space-x-3 px-4 py-3 rounded-lg {% if active == 'reports' %}bg-erp-gold/10 text-erp-gold{% else %}text-gray-400 hover:bg-erp-card hover:text-white{% endif %}">
+                        <i class="fas fa-chart-pie w-5"></i><span>Reports</span>
+                    </a>
+                    {% endif %}
+                {% endif %}
+            </nav>
+        </div>
+    </div>
+</body>
+</html>

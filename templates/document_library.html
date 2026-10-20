@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block page_title %}Document Library{% endblock %}
+{% block content %}
+<div class="pb-24 space-y-6" x-data="{ showUpload: false }">
+    
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-white">Document Management System</h1>
+            <p class="text-gray-400 text-sm mt-1">Infinity Investment Group • Standardized Filing & Retention</p>
+        </div>
+        <button @click="showUpload = true" class="bg-erp-gold hover:bg-erp-gold-dark text-black font-bold px-4 py-2 rounded-lg flex items-center transition-colors z-40 relative">
+            <i class="fas fa-cloud-upload-alt mr-2"></i> Upload Document
+        </button>
+    </div>
+
+    {% if request.query_params.get('success') == 'true' %}
+    <div class="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 rounded-lg flex items-center text-sm">
+        <i class="fas fa-check-circle mr-2"></i> Document uploaded and standardized successfully!
+    </div>
+    {% endif %}
+
+    <!-- Document Table -->
+    <div class="bg-erp-card border border-erp-border rounded-xl p-4 overflow-x-auto">
+        <table class="w-full text-left">
+            <thead>
+                <tr class="border-b border-erp-border text-gray-400 text-xs uppercase tracking-wider">
+                    <th class="pb-3 font-medium">Standardized Name</th>
+                    <th class="pb-3 font-medium">Type Code</th>
+                    <th class="pb-3 font-medium">Project ID</th>
+                    <th class="pb-3 font-medium">Category</th>
+                    {% if 'CEO' in current_emp.job_title or 'Vice CEO' in current_emp.job_title %}
+                    <th class="pb-3 font-medium">Company</th>
+                    {% endif %}
+                    <th class="pb-3 font-medium">Retention</th>
+                    <th class="pb-3 font-medium text-right">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-erp-border">
+                {% for doc in documents %}
+                <tr class="hover:bg-erp-black/30 transition-colors">
+                    <td class="py-3">
+                        <div class="flex items-center">
+                            <i class="fas fa-file-pdf text-red-400 mr-3 text-lg"></i>
+                            <div>
+                                <p class="text-white text-sm font-medium font-mono">{{ doc.filename }}</p>
+                                <p class="text-gray-500 text-xs">{{ doc.description or 'No description' }} • v{{ doc.version }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-3 text-sm text-erp-gold font-mono">{{ doc.doc_type_code or 'N/A' }}</td>
+                    <td class="py-3 text-sm text-gray-300">{{ doc.project_id or 'N/A' }}</td>
+                    <td class="py-3 text-sm text-gray-300">{{ doc.category.name if doc.category else 'General' }}</td>
+                    {% if 'CEO' in current_emp.job_title or 'Vice CEO' in current_emp.job_title %}
+                    <td class="py-3 text-sm text-gray-300">
+                        {% if doc.company_id == 2 %}Capital Hailu{% elif doc.company_id == 3 %}Yirga Agedom{% else %}Infinity{% endif %}
+                    </td>
+                    {% endif %}
+                    <td class="py-3 text-sm text-gray-300">{{ doc.retention_years }} Years</td>
+                    <td class="py-3 text-right">
+                        <a href="/api/documents/download/{{ doc.id }}" class="text-erp-gold hover:text-erp-gold-light text-sm font-medium">
+                            <i class="fas fa-download mr-1"></i> Download
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="{% if 'CEO' in current_emp.job_title or 'Vice CEO' in current_emp.job_title %}7{% else %}6{% endif %}" class="py-8 text-center text-gray-500 text-sm">
+                        No documents found. Upload your first document to begin.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Upload Modal -->
+    <div x-show="showUpload" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="showUpload = false"></div>
+        <div class="relative bg-erp-card border border-erp-border rounded-2xl p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-white">Upload & Standardize Document</h3>
+                <button @click="showUpload = false" class="text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            <form action="/api/documents/upload" method="POST" enctype="multipart/form-data" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Select File *</label>
+                    <input type="file" name="file" required class="w-full bg-erp-black border border-erp-border rounded-lg px-3 py-2 text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-erp-gold file:text-black">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Category *</label>
+                        <select name="category_id" required class="w-full bg-erp-black border border-erp-border rounded-lg px-3 py-2 text-sm text-white">
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Doc Type Code *</label>
+                        <select name="doc_type_code" required class="w-full bg-erp-black border border-erp-border rounded-lg px-3 py-2 text-sm text-white">
+                            <option value="ProformaInvoice">Proforma Invoice</option>
+                            <option value="BidDocument">Bid Document</option>
+                            <option value="PurchaseOrder">Purchase Order</option>
+                            <option value="PaymentVoucher">Payment Voucher</option>
+                            <option value="CPO">Cash Payment Order</option>
+                            <option value="Contract">Contract</option>
+                            <option value="BL">Bill of Lading</option>
+                            <option value="COO">Certificate of Origin</option>
+                            <option value="LC">Letter of Credit</option>
+                            <option value="General">General</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Project / Tender ID *</label>
+                        <input type="text" name="project_id" required placeholder="e.g., ET-2026-042" class="w-full bg-erp-black border border-erp-border rounded-lg px-3 py-2 text-sm text-white uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Access Level (1-5)</label>
+                        <select name="access_level" class="w-full bg-erp-black border border-erp-border rounded-lg px-3 py-2 text-sm text-white">
+                            <option value="1">Level 1 - All Staff</option>
+                            <option value="2">Level 2 - Department</option>
+                            <option value="3">Level 3 - Management</option>
+                            <option value="4">Level 4 - Executive</option>
+                            <option value="5">Level 5 - Restricted</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Retention (Years)</label>
+                        <select name="retention_years" class="w-full bg-erp-black border border-erp-border rounded-lg px-3 py-2 text-sm text-white">
+                            <option value="3">3 Years (Correspondence)</option>
+                            <option value="5">5 Years (Shipping)</option>
+                            <option value="7" selected>7 Years (Tenders/Bank)</option>
+                            <option value="10">10 Years (Financial/Tax)</option>
+                            <option value="99">Permanent (Board/Formation)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Description</label>
+                        <input type="text" name="description" placeholder="Optional notes" class="w-full bg-erp-black border border-erp-border rounded-lg px-3 py-2 text-sm text-white">
+                    </div>
+                </div>
+
+                <div class="bg-erp-black/50 p-3 rounded-lg border border-erp-border">
+                    <p class="text-xs text-gray-400"><i class="fas fa-info-circle mr-1"></i> The system will automatically rename your file to: <span class="text-erp-gold font-mono">YYYY-MM-DD_[TypeCode]_[ProjectID]_v[Version].ext</span></p>
+                </div>
+
+                <button type="submit" class="w-full bg-erp-gold hover:bg-erp-gold-dark text-black font-bold py-2.5 rounded-lg transition-colors">
+                    Upload & Standardize
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

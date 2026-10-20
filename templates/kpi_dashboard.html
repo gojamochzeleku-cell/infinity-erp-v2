@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% block page_title %}KPI Dashboard{% endblock %}
+{% block content %}
+<div class="space-y-6 pb-24">
+    <div class="bg-gradient-to-r from-erp-card to-erp-dark border border-erp-border rounded-2xl p-6">
+        <h1 class="text-2xl font-bold text-white mb-1">KPI Dashboard & SOP Workflows</h1>
+        <p class="text-erp-gold font-semibold">Capital Hailu Import Operating System Metrics</p>
+    </div>
+
+    {% if request.query_params.get('msg') %}
+    <div class="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 rounded-lg">{{ request.query_params.get('msg') }}</div>
+    {% endif %}
+
+    <!-- COMPANY-WIDE KPIs -->
+    <h2 class="text-xl font-bold text-white border-l-4 border-erp-gold pl-3">Company-Wide KPIs</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Tender Win Rate -->
+        <div class="bg-erp-card border border-erp-border rounded-xl p-5">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-gray-400 text-sm font-semibold">Tender Win Rate</span>
+                <span class="text-xs bg-erp-gold/20 text-erp-gold px-2 py-1 rounded">Target: 20-30%</span>
+            </div>
+            <div class="text-3xl font-bold text-white mb-2">{{ win_rate }}%</div>
+            <div class="w-full bg-erp-black rounded-full h-2">
+                <div class="bg-erp-gold h-2 rounded-full" style="width: {{ [win_rate, 100]|min }}%"></div>
+            </div>
+        </div>
+        
+        <!-- License Validity -->
+        <div class="bg-erp-card border border-erp-border rounded-xl p-5">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-gray-400 text-sm font-semibold">License Validity</span>
+                <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">Target: 100%</span>
+            </div>
+            <div class="text-3xl font-bold text-white mb-2">{{ license_validity }}%</div>
+            <div class="w-full bg-erp-black rounded-full h-2">
+                <div class="bg-green-500 h-2 rounded-full" style="width: {{ license_validity }}%"></div>
+            </div>
+        </div>
+
+        <!-- Static Manual KPIs (Simulated for Structure) -->
+        <div class="bg-erp-card border border-erp-border rounded-xl p-5">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-gray-400 text-sm font-semibold">Technical Pass Rate</span>
+                <span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Target: 100%</span>
+            </div>
+            <div class="text-3xl font-bold text-white mb-2">100%</div>
+            <p class="text-xs text-gray-500">Zero bids rejected for non-compliance</p>
+        </div>
+        
+        <div class="bg-erp-card border border-erp-border rounded-xl p-5">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-gray-400 text-sm font-semibold">Net Profit Margin</span>
+                <span class="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded">Target: 15-25%</span>
+            </div>
+            <div class="text-3xl font-bold text-white mb-2">22.4%</div>
+            <div class="w-full bg-erp-black rounded-full h-2"><div class="bg-purple-500 h-2 rounded-full" style="width: 80%"></div></div>
+        </div>
+
+        <div class="bg-erp-card border border-erp-border rounded-xl p-5">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-gray-400 text-sm font-semibold">On-Time Delivery</span>
+                <span class="text-xs bg-erp-blue/20 text-erp-blue px-2 py-1 rounded">Target: 95%</span>
+            </div>
+            <div class="text-3xl font-bold text-white mb-2">98%</div>
+            <div class="w-full bg-erp-black rounded-full h-2"><div class="bg-erp-blue h-2 rounded-full" style="width: 98%"></div></div>
+        </div>
+
+        <div class="bg-erp-card border border-erp-border rounded-xl p-5">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-gray-400 text-sm font-semibold">Document Retrieval Time</span>
+                <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">Target: < 5 min</span>
+            </div>
+            <div class="text-3xl font-bold text-white mb-2">0.5 min</div>
+            <p class="text-xs text-gray-500">Digital System Instant Access</p>
+        </div>
+    </div>
+
+    <!-- DEPARTMENT KPIs -->
+    <h2 class="text-xl font-bold text-white border-l-4 border-erp-blue pl-3 mt-8">Department-Specific KPIs</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-erp-card border border-erp-border rounded-xl p-4">
+            <p class="text-xs text-erp-gold font-bold uppercase">Bid Dept</p>
+            <p class="text-white text-sm mt-1">Submission Lead Time</p>
+            <p class="text-2xl font-bold text-white">24h <span class="text-xs text-gray-500">before deadline</span></p>
+        </div>
+        <div class="bg-erp-card border border-erp-border rounded-xl p-4">
+            <p class="text-xs text-erp-gold font-bold uppercase">Import Dept</p>
+            <p class="text-white text-sm mt-1">Demurrage Incidents</p>
+            <p class="text-2xl font-bold text-green-400">ZERO</p>
+        </div>
+        <div class="bg-erp-card border border-erp-border rounded-xl p-4">
+            <p class="text-xs text-erp-gold font-bold uppercase">Finance Dept</p>
+            <p class="text-white text-sm mt-1">Forex Cycle Time</p>
+            <p class="text-2xl font-bold text-white">12 <span class="text-xs text-gray-500">days (Target <14)</span></p>
+        </div>
+        <div class="bg-erp-card border border-erp-border rounded-xl p-4">
+            <p class="text-xs text-erp-gold font-bold uppercase">Legal Dept</p>
+            <p class="text-white text-sm mt-1">Contract Review Time</p>
+            <p class="text-2xl font-bold text-white">36h <span class="text-xs text-gray-500">(Target <48h)</span></p>
+        </div>
+    </div>
+
+    <!-- SOP WORKFLOW AUTOMATION -->
+    <div class="flex flex-col md:flex-row justify-between items-center mt-8 mb-4">
+        <h2 class="text-xl font-bold text-white border-l-4 border-erp-red pl-3">Active SOP Workflows</h2>
+        <button onclick="document.getElementById('startSopModal').classList.remove('hidden')" class="mt-2 md:mt-0 bg-erp-gold text-black font-bold px-4 py-2 rounded-lg text-sm">
+            <i class="fas fa-play mr-2"></i> Start New SOP
+        </button>
+    </div>
+
+    <div class="space-y-4">
+        {% for item in workflows %}
+        <div class="bg-erp-card border border-erp-border rounded-xl p-5">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <span class="px-2 py-1 rounded text-xs font-bold bg-erp-red/20 text-erp-red">{{ item.wf.sop_code }}</span>
+                    <span class="text-white font-bold ml-2">{{ item.wf.sop_name }}</span>
+                    {% if item.wf.reference_id %}<span class="text-gray-400 text-sm ml-2">Ref: {{ item.wf.reference_id }}</span>{% endif %}
+                </div>
+                <span class="px-3 py-1 rounded-full text-xs font-bold {% if item.wf.status == 'COMPLETED' %}bg-green-500/20 text-green-400{% else %}bg-yellow-500/20 text-yellow-400{% endif %}">
+                    {{ item.wf.status }}
+                </span>
+            </div>
+            
+            <div class="space-y-3">
+                {% for step in item.steps %}
+                <div class="flex items-center justify-between bg-erp-black/50 p-3 rounded-lg border-l-4 {% if step.status == 'DONE' %}border-l-green-500{% else %}border-l-yellow-500{% endif %}">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm mr-3 {% if step.status == 'DONE' %}bg-green-500 text-black{% else %}bg-erp-border text-gray-400{% endif %}">
+                            {{ step.step_number }}
+                        </div>
+                        <div>
+                            <p class="text-white text-sm font-medium">{{ step.step_name }}</p>
+                            <p class="text-xs text-gray-500">Owner: {{ step.assigned_role }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if step.status == 'PENDING' %}
+                    <form action="/api/sop/advance/{{ step.id }}" method="POST" class="flex gap-2">
+                        <input type="text" name="notes" placeholder="Add notes..." class="bg-erp-black border border-erp-border rounded px-2 py-1 text-xs text-white w-32 md:w-48">
+                        <button type="submit" class="bg-erp-gold text-black text-xs font-bold px-3 py-1 rounded">Complete Step</button>
+                    </form>
+                    {% else %}
+                    <div class="text-green-400 text-xs font-bold flex items-center">
+                        <i class="fas fa-check-circle mr-1"></i> DONE
+                        {% if step.notes %}<span class="text-gray-500 ml-2 normal-case font-normal">({{ step.notes }})</span>{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-12 text-gray-500 bg-erp-card border border-erp-border rounded-xl">
+            No active SOP workflows. Click "Start New SOP" to initiate a process.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Start SOP Modal -->
+<div id="startSopModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
+    <div class="bg-erp-card border border-erp-border rounded-xl p-6 w-full max-w-md">
+        <h3 class="text-lg font-bold text-white mb-4">Initiate Standard Operating Procedure</h3>
+        <form action="/api/sop/start" method="POST" class="space-y-4">
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">Select SOP</label>
+                <select name="sop_code" required class="w-full bg-erp-black border border-erp-border rounded px-3 py-2 text-white">
+                    <option value="SOP-001">SOP-001: Tender Opportunity Assessment</option>
+                    <option value="SOP-006">SOP-006: License Renewal Management</option>
+                    <option value="SOP-007">SOP-007: Document Receipt & Filing</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">Reference ID (Optional)</label>
+                <input type="text" name="reference_id" placeholder="e.g., Tender ID or License Name" class="w-full bg-erp-black border border-erp-border rounded px-3 py-2 text-white">
+            </div>
+            <div class="flex justify-end gap-2">
+                <button type="button" onclick="document.getElementById('startSopModal').classList.add('hidden')" class="px-4 py-2 text-gray-400">Cancel</button>
+                <button type="submit" class="bg-erp-gold text-black font-bold px-4 py-2 rounded">Start Workflow</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

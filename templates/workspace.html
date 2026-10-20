@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+{% block page_title %}My Workspace
+    <!-- Task Detail Modal -->
+    <template x-for="task in allTasks" :key="task.id">
+        <div x-show="activeTaskId === task.id" class="fixed inset-0 z-[60] flex items-center justify-center p-4" style="display: none;">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="activeTaskId = null"></div>
+            <div class="relative bg-erp-card border border-erp-border rounded-2xl p-6 w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-white" x-text="task.title"></h3>
+                        <p class="text-gray-400 text-sm mt-1">Priority: <span x-text="task.priority"></span> • Status: <span x-text="task.status"></span></p>
+                    </div>
+                    <button @click="activeTaskId = null" class="text-gray-400 hover:text-white bg-erp-black/50 p-2 rounded-full"><i class="fas fa-times"></i></button>
+                </div>
+                
+                <div class="bg-erp-black/50 p-4 rounded-lg border border-erp-border mb-4">
+                    <p class="text-sm font-semibold text-gray-400 mb-2">Description</p>
+                    <p class="text-white text-sm" x-text="task.description"></p>
+                </div>
+
+                <div class="space-y-3">
+                    <p class="text-sm font-semibold text-gray-400 flex items-center"><i class="fas fa-history mr-2"></i> Your Status Updates & Reports</p>
+                    <template x-if="task.responses.length === 0">
+                        <p class="text-gray-500 text-sm italic bg-erp-black/30 p-3 rounded-lg">No status updates reported yet.</p>
+                    </template>
+                    <template x-for="response in task.responses" :key="response.created_at">
+                        <div class="bg-erp-black/30 p-3 rounded-lg border-l-2 border-erp-gold">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="px-2 py-0.5 rounded text-xs font-semibold" 
+                                    :class="{
+                                        'bg-blue-500/20 text-blue-400': response.status === 'IN_PROGRESS',
+                                        'bg-red-500/20 text-red-400': response.status === 'BLOCKED',
+                                        'bg-green-500/20 text-green-400': response.status === 'DONE'
+                                    }"
+                                    x-text="response.status"></span>
+                                <span class="text-xs text-gray-500" x-text="response.created_at"></span>
+                            </div>
+                            <p class="text-sm text-gray-300" x-text="response.comment"></p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </template>
+{% endblock %}
+{% block content %}
+<div class="space-y-6" x-data="{ activeTaskId: null, allTasks: {{ task_data_json | safe }} }">
+    <!-- Dynamic Header -->
+    <div class="bg-gradient-to-r from-erp-card to-erp-dark border border-erp-border rounded-2xl p-6 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-48 h-48 bg-erp-gold/5 rounded-full -mr-16 -mt-16"></div>
+        <div class="relative z-10">
+            <h1 class="text-2xl font-bold text-white mb-1">Welcome, {{ current_emp.name }}</h1>
+            <p class="text-erp-gold font-semibold text-lg mb-2">{{ job_title }}</p>
+            <p class="text-gray-400 text-sm">{{ role_data.title }} • Tailored for your daily operations</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column: KPIs & Quick Forms -->
+        <div class="lg:col-span-1 space-y-6">
+            <!-- Role-Specific KPIs -->
+            <div class="bg-erp-card border border-erp-border rounded-xl p-5">
+                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 flex items-center">
+                    <i class="fas fa-chart-line text-erp-gold mr-2"></i> Key Metrics
+                </h3>
+                <div class="space-y-3">
+                    {% for kpi in role_data.kpis %}
+                    <div class="flex items-center bg-erp-black/50 p-3 rounded-lg border border-erp-border">
+                        <i class="fas fa-check-circle text-erp-gold mr-3 text-sm"></i>
+                        <span class="text-sm text-gray-200">{{ kpi }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Role-Specific Quick Action Form -->
+            <div class="bg-erp-card border border-erp-border rounded-xl p-5">
+                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 flex items-center">
+                    <i class="fas fa-bolt text-erp-gold mr-2"></i> Quick Action
+                </h3>
+                
+                {% if role_data.form_type == 'new_tender_draft' %}
+                <form action="/api/tender" method="POST" class="space-y-3">
+                    <input type="text" name="title" required placeholder="Tender Title" class="w-full bg-erp-black border border-erp-border rounded-lg px-3 py-2 text-sm text-white focus:border-erp-gold focus:outline-none">
+                    <input type="text" name="client_name" required placeholder="Client Name" class="w-full bg-erp-black border border-erp-border rounded-lg px-3 py-2 text-sm text-white focus:border-erp-gold focus:outline-none">
+                    <input type="number" name="bid_amount" step="0.01" placeholder="Estimated Amount (ETB)" class="w-full bg-erp-black border border-erp-border rounded-lg px-3 py-2 text-sm text-white focus:border-erp-gold focus:outline-none">
+                    <button type="submit" class="w-full bg-erp-gold hover:bg-erp-gold-dark text-black font-bold py-2 rounded-lg text-sm transition-colors">Save Draft</button>
+                </form>
+                {% elif role_data.form_type == 'journal_entry' %}
+                <a href="/journal" class="block w-full text-center bg-erp-gold hover:bg-erp-gold-dark text-black font-bold py-2 rounded-lg text-sm transition-colors">
+                    <i class="fas fa-pen-fancy mr-1"></i> Open Journal Entry Form
+                </a>
+                {% elif role_data.form_type == 'doc_upload' %}
+                <a href="/documents?ref_type=GENERAL&ref_id=0" class="block w-full text-center bg-erp-gold hover:bg-erp-gold-dark text-black font-bold py-2 rounded-lg text-sm transition-colors">
+                    <i class="fas fa-cloud-upload-alt mr-1"></i> Upload Document
+                </a>
+                {% elif role_data.form_type == 'landed_cost_entry' %}
+                <a href="/landed-costs" class="block w-full text-center bg-erp-gold hover:bg-erp-gold-dark text-black font-bold py-2 rounded-lg text-sm transition-colors">
+                    <i class="fas fa-file-invoice-dollar mr-1"></i> Record Landed Cost
+                </a>
+                {% elif role_data.form_type == 'hr_onboarding' %}
+                <a href="/employees" class="block w-full text-center bg-erp-gold hover:bg-erp-gold-dark text-black font-bold py-2 rounded-lg text-sm transition-colors">
+                    <i class="fas fa-user-plus mr-1"></i> Manage Employees & Resets
+                </a>
+                {% else %}
+                <div class="text-center py-4 text-gray-500 text-sm">
+                    <i class="fas fa-info-circle mb-2 text-xl"></i>
+                    <p>Navigate to specific modules for detailed forms.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Column: Assigned Tasks & Tenders -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- My Tasks -->
+            <div class="bg-erp-card border border-erp-border rounded-xl p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center">
+                        <i class="fas fa-tasks text-erp-gold mr-2"></i> My Assigned Tasks
+                    </h3>
+                    <a href="/tasks" class="text-xs text-erp-gold hover:text-erp-gold-light">View All</a>
+                </div>
+                {% if tasks %}
+                <div class="space-y-2">
+                    {% for task in tasks[:5] %}
+                    <div @click="activeTaskId = task.id" class="cursor-pointer bg-erp-black/50 border border-erp-border rounded-lg p-4 space-y-3 hover:border-erp-gold transition-colors">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-white text-sm font-medium">{{ task.title }}</p>
+                                <p class="text-gray-500 text-xs mt-1">Priority: {{ task.priority }} • Due: {{ task.due_date.strftime('%Y-%m-%d') if task.due_date else 'N/A' }}</p>
+                            </div>
+                            <span class="px-2 py-1 rounded text-xs font-semibold 
+                                {% if task.status == 'DONE' %}bg-green-500/20 text-green-400
+                                {% elif task.status == 'IN_PROGRESS' %}bg-blue-500/20 text-blue-400
+                                {% elif task.status == 'BLOCKED' %}bg-red-500/20 text-red-400
+                                {% else %}bg-yellow-500/20 text-yellow-400{% endif %}">
+                                {{ task.status }}
+                            </span>
+                        </div>
+                        
+                        <!-- Latest Report from Employee -->
+                        {% if task.responses %}
+                        <div class="bg-erp-card/50 p-2 rounded border-l-2 border-erp-gold">
+                            <p class="text-xs text-gray-400"><i class="fas fa-comment-dots mr-1"></i> Latest Update:</p>
+                            <p class="text-xs text-white mt-1">{{ task.responses[0].comment }}</p>
+                        </div>
+                        {% endif %}
+
+                        <!-- Report Form -->
+                        {% if task.status != 'DONE' %}
+                        <form action="/api/tasks/update/{{ task.id }}" method="POST" class="flex gap-2">
+                            <select name="status" class="bg-erp-black border border-erp-border rounded px-2 py-1 text-xs text-white focus:outline-none">
+                                <option value="IN_PROGRESS">In Progress</option>
+                                <option value="BLOCKED">Blocked</option>
+                                <option value="DONE">Completed</option>
+                            </select>
+                            <input type="text" name="comment" required placeholder="Report status..." class="flex-1 bg-erp-black border border-erp-border rounded px-2 py-1 text-xs text-white focus:outline-none">
+                            <button type="submit" class="bg-erp-gold text-black text-xs font-bold px-3 py-1 rounded hover:bg-erp-gold-dark">Report</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-gray-500 text-center py-6 text-sm">No tasks currently assigned to you.</p>
+                {% endif %}
+            </div>
+
+            <!-- My Tenders (If applicable) -->
+            {% if 'Bid' in job_title or 'Manager' in job_title or 'CEO' in job_title or 'Vice CEO' in job_title or 'General Manager' in job_title %}
+            <div class="bg-erp-card border border-erp-border rounded-xl p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center">
+                        <i class="fas fa-gavel text-erp-gold mr-2"></i> Active Tenders
+                    </h3>
+                    <a href="/tender" class="text-xs text-erp-gold hover:text-erp-gold-light">View All</a>
+                </div>
+                {% if tenders %}
+                <div class="space-y-2">
+                    {% for tender in tenders[:5] %}
+                    <div class="bg-erp-black/50 border border-erp-border rounded-lg p-3 flex justify-between items-center">
+                        <div>
+                            <p class="text-white text-sm font-medium">{{ tender.title }}</p>
+                            <p class="text-gray-500 text-xs mt-1">{{ tender.client_name }} • {{ "{:,.2f}".format(tender.bid_amount) }} ETB</p>
+                        </div>
+                        <span class="px-2 py-1 rounded text-xs font-semibold 
+                            {% if tender.status == 'WON' %}bg-green-500/20 text-green-400
+                            {% elif tender.status == 'SUBMITTED' %}bg-blue-500/20 text-blue-400
+                            {% else %}bg-yellow-500/20 text-yellow-400{% endif %}">
+                            {{ tender.status }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-gray-500 text-center py-6 text-sm">No tenders currently assigned to you.</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+    <!-- Task Detail Modal -->
+    <template x-for="task in allTasks" :key="task.id">
+        <div x-show="activeTaskId === task.id" class="fixed inset-0 z-[60] flex items-center justify-center p-4" style="display: none;">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="activeTaskId = null"></div>
+            <div class="relative bg-erp-card border border-erp-border rounded-2xl p-6 w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-white" x-text="task.title"></h3>
+                        <p class="text-gray-400 text-sm mt-1">Priority: <span x-text="task.priority"></span> • Status: <span x-text="task.status"></span></p>
+                    </div>
+                    <button @click="activeTaskId = null" class="text-gray-400 hover:text-white bg-erp-black/50 p-2 rounded-full"><i class="fas fa-times"></i></button>
+                </div>
+                
+                <div class="bg-erp-black/50 p-4 rounded-lg border border-erp-border mb-4">
+                    <p class="text-sm font-semibold text-gray-400 mb-2">Description</p>
+                    <p class="text-white text-sm" x-text="task.description"></p>
+                </div>
+
+                <div class="space-y-3">
+                    <p class="text-sm font-semibold text-gray-400 flex items-center"><i class="fas fa-history mr-2"></i> Your Status Updates & Reports</p>
+                    <template x-if="task.responses.length === 0">
+                        <p class="text-gray-500 text-sm italic bg-erp-black/30 p-3 rounded-lg">No status updates reported yet.</p>
+                    </template>
+                    <template x-for="response in task.responses" :key="response.created_at">
+                        <div class="bg-erp-black/30 p-3 rounded-lg border-l-2 border-erp-gold">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="px-2 py-0.5 rounded text-xs font-semibold" 
+                                    :class="{
+                                        'bg-blue-500/20 text-blue-400': response.status === 'IN_PROGRESS',
+                                        'bg-red-500/20 text-red-400': response.status === 'BLOCKED',
+                                        'bg-green-500/20 text-green-400': response.status === 'DONE'
+                                    }"
+                                    x-text="response.status"></span>
+                                <span class="text-xs text-gray-500" x-text="response.created_at"></span>
+                            </div>
+                            <p class="text-sm text-gray-300" x-text="response.comment"></p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </template>
+{% endblock %}

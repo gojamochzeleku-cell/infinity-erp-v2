@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block page_title %}Customer Directory{% endblock %}
+{% block content %}
+<div class="space-y-8">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-white">Customer Directory</h1>
+            <p class="text-gray-400 mt-1">Manage clients, contacts, and billing information.</p>
+        </div>
+        {% if request.query_params.get('success') == 'true' %}
+        <div class="bg-green-500/10 border border-green-500/50 text-green-400 px-4 py-2 rounded-lg flex items-center">
+            <i class="fas fa-check-circle mr-2"></i> Customer added successfully!
+        </div>
+        {% endif %}
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-1 bg-erp-card border border-erp-border rounded-xl p-6 h-fit sticky top-24">
+            <h3 class="text-lg font-semibold text-white mb-6 flex items-center"><i class="fas fa-user-plus text-erp-gold mr-2"></i> Add New Customer</h3>
+            <form action="/api/customers" method="POST" class="space-y-4">
+                <input type="text" name="name" required placeholder="Company / Customer Name" class="w-full bg-erp-dark border border-erp-border rounded-lg px-4 py-3 text-white focus:border-erp-gold focus:outline-none">
+                <input type="text" name="contact_person" placeholder="Contact Person" class="w-full bg-erp-dark border border-erp-border rounded-lg px-4 py-3 text-white focus:border-erp-gold focus:outline-none">
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="text" name="phone" placeholder="Phone" class="w-full bg-erp-dark border border-erp-border rounded-lg px-4 py-3 text-white focus:border-erp-gold focus:outline-none">
+                    <input type="email" name="email" placeholder="Email" class="w-full bg-erp-dark border border-erp-border rounded-lg px-4 py-3 text-white focus:border-erp-gold focus:outline-none">
+                </div>
+                <input type="text" name="tin" placeholder="TIN Number" class="w-full bg-erp-dark border border-erp-border rounded-lg px-4 py-3 text-white focus:border-erp-gold focus:outline-none">
+                <button type="submit" class="w-full bg-erp-gold hover:bg-erp-gold-dark text-black font-bold py-3 rounded-lg transition-colors">Add Customer</button>
+            </form>
+        </div>
+        <div class="lg:col-span-2 bg-erp-card border border-erp-border rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-white mb-6 flex items-center"><i class="fas fa-address-book text-erp-gold mr-2"></i> Registered Customers</h3>
+            <div class="space-y-3">
+                {% for cust in customers %}
+                <div class="bg-erp-dark border border-erp-border rounded-lg p-4 flex justify-between items-center hover:border-erp-gold/50 transition-colors">
+                    <div>
+                        <p class="text-white font-bold text-lg">{{ cust.name }}</p>
+                        <p class="text-gray-400 text-sm"><i class="fas fa-user mr-1"></i> {{ cust.contact_person or 'N/A' }} | <i class="fas fa-phone mr-1"></i> {{ cust.phone or 'N/A' }}</p>
+                        <p class="text-gray-500 text-xs mt-1">TIN: {{ cust.tin or 'N/A' }}</p>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-gray-500 text-center py-8">No customers found.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

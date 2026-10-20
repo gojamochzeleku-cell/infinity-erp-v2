@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinity ERP - Secure Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'erp-black': '#0a0a0a', 'erp-dark': '#141414', 'erp-card': '#1a1a1a',
+                        'erp-border': '#2a2a2a', 'erp-gold': '#D4AF37', 'erp-gold-light': '#F3E5AB', 'erp-gold-dark': '#AA8C2C',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; }
+        .text-gold-gradient { background: linear-gradient(135deg, #D4AF37 0%, #F3E5AB 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md" x-data="{ selectedCompany: null }">
+        
+        <!-- Brand Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gold-gradient tracking-wider">INFINITY</h1>
+            <p class="text-gray-400 mt-2 text-sm tracking-wide">Enterprise Resource Planning</p>
+            <p class="text-gray-600 mt-1 text-xs">Infinity Investment Group</p>
+        </div>
+
+        <!-- Main Login Card -->
+        <div class="bg-erp-card border border-erp-border rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-erp-gold/5 rounded-full -mr-16 -mt-16"></div>
+            
+            <!-- Error Message -->
+            {% if error %}
+            <div class="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg mb-6 flex items-center text-sm">
+                <i class="fas fa-exclamation-circle mr-2"></i> {{ error }}
+            </div>
+            {% endif %}
+
+            <!-- STEP 1: Company Selection -->
+            <div x-show="!selectedCompany" x-transition.opacity>
+                <h2 class="text-xl font-semibold text-white mb-6 text-center">Select Your Operating Company</h2>
+                <div class="space-y-4">
+                    <button @click="selectedCompany = 2" class="w-full bg-erp-dark hover:bg-erp-gold/10 border border-erp-border hover:border-erp-gold rounded-xl p-4 flex items-center transition-all group">
+                        <div class="w-12 h-12 rounded-lg bg-erp-gold/10 flex items-center justify-center mr-4 group-hover:bg-erp-gold/20">
+                            <i class="fas fa-building text-erp-gold text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <p class="text-white font-bold">Capital Hailu Import</p>
+                            <p class="text-gray-500 text-xs">Click to proceed to login</p>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-600 ml-auto group-hover:text-erp-gold"></i>
+                    </button>
+
+                    <button @click="selectedCompany = 3" class="w-full bg-erp-dark hover:bg-erp-gold/10 border border-erp-border hover:border-erp-gold rounded-xl p-4 flex items-center transition-all group">
+                        <div class="w-12 h-12 rounded-lg bg-erp-gold/10 flex items-center justify-center mr-4 group-hover:bg-erp-gold/20">
+                            <i class="fas fa-building text-erp-gold text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <p class="text-white font-bold">Yirga Agedom Haile Import</p>
+                            <p class="text-gray-500 text-xs">Click to proceed to login</p>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-600 ml-auto group-hover:text-erp-gold"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 2: Credentials (Unlocked after selection) -->
+            <form x-show="selectedCompany" x-transition.opacity action="/login" method="POST" class="space-y-5">
+                <input type="hidden" name="company_id" :value="selectedCompany">
+                
+                <div class="text-center mb-4">
+                    <p class="text-erp-gold font-semibold text-sm">Logging into:</p>
+                    <p class="text-white font-bold text-lg" x-text="selectedCompany == 2 ? 'Capital Hailu Import' : 'Yirga Agedom Haile Import'"></p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Username</label>
+                    <div class="relative">
+                        <i class="fas fa-user absolute left-4 top-4 text-gray-500"></i>
+                        <input type="text" name="username" required placeholder="Enter your username" 
+                               class="w-full bg-erp-dark border border-erp-border rounded-lg pl-10 pr-4 py-3 text-white focus:border-erp-gold focus:outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                               :disabled="!selectedCompany" x-ref="usernameInput">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Password</label>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-4 top-4 text-gray-500"></i>
+                        <input type="password" name="password" required placeholder="Enter your password" 
+                               class="w-full bg-erp-dark border border-erp-border rounded-lg pl-10 pr-4 py-3 text-white focus:border-erp-gold focus:outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                               :disabled="!selectedCompany">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-erp-gold hover:bg-erp-gold-dark text-black font-bold py-3 rounded-lg transition-colors shadow-lg shadow-erp-gold/20 mb-3">Secure Login</button>
+                <a href="/request-reset" class="block text-center text-erp-gold hover:text-erp-gold-light text-sm transition-colors">Forgot Password?</a>
+                    Secure Login
+                </button>
+
+                <button type="button" @click="selectedCompany = null" class="w-full text-center text-gray-500 hover:text-white text-sm transition-colors mt-2">
+                    <i class="fas fa-arrow-left mr-1"></i> Change Company
+                </button>
+            </form>
+        </div>
+
+        <div class="text-center mt-6">
+            <p class="text-gray-600 text-xs">Default Admin: admin / admin123</p>
+            <p class="text-gray-600 text-xs mt-1">Staff Password: infinity2026</p>
+        </div>
+    </div>
+</body>
+</html>

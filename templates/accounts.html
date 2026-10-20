@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block page_title %}Chart of Accounts{% endblock %}
+{% block content %}
+<div class="space-y-8">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-white">Chart of Accounts</h1>
+            <p class="text-gray-400 mt-1">Manage the financial foundation: assets, liabilities, equity, revenue, and expenses.</p>
+        </div>
+        {% if request.query_params.get('success') == 'true' %}
+        <div class="bg-green-500/10 border border-green-500/50 text-green-400 px-4 py-2 rounded-lg flex items-center">
+            <i class="fas fa-check-circle mr-2"></i> Account created successfully!
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Add Account Form -->
+        <div class="lg:col-span-1 bg-erp-card border border-erp-border rounded-xl p-6 h-fit sticky top-24">
+            <h3 class="text-lg font-semibold text-white mb-6 flex items-center">
+                <i class="fas fa-plus-circle text-erp-gold mr-2"></i> Add New Account
+            </h3>
+            <form action="/api/accounts" method="POST" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Account Code</label>
+                    <input type="text" name="account_code" required class="w-full bg-erp-dark border border-erp-border rounded-lg px-4 py-3 text-white focus:border-erp-gold focus:outline-none transition-colors" placeholder="e.g., 1000">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Account Name</label>
+                    <input type="text" name="account_name" required class="w-full bg-erp-dark border border-erp-border rounded-lg px-4 py-3 text-white focus:border-erp-gold focus:outline-none transition-colors" placeholder="e.g., Cash in Bank">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Account Type</label>
+                    <select name="account_type" required class="w-full bg-erp-dark border border-erp-border rounded-lg px-4 py-3 text-white focus:border-erp-gold focus:outline-none transition-colors">
+                        <option value="ASSET">Asset</option>
+                        <option value="LIABILITY">Liability</option>
+                        <option value="EQUITY">Equity</option>
+                        <option value="REVENUE">Revenue</option>
+                        <option value="EXPENSE">Expense</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-erp-gold hover:bg-erp-gold-dark text-black font-bold py-3 rounded-lg transition-colors mt-4">
+                    Create Account
+                </button>
+            </form>
+        </div>
+
+        <!-- Accounts Directory -->
+        <div class="lg:col-span-2 bg-erp-card border border-erp-border rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-white mb-6 flex items-center">
+                <i class="fas fa-list-ol text-erp-gold mr-2"></i> Account Directory
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b border-erp-border text-gray-400 text-sm">
+                            <th class="pb-4 font-medium">Code</th>
+                            <th class="pb-4 font-medium">Account Name</th>
+                            <th class="pb-4 font-medium">Type</th>
+                            <th class="pb-4 font-medium text-right">Balance (ETB)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-erp-border">
+                        {% for acc in accounts %}
+                        <tr class="hover:bg-erp-dark/50 transition-colors">
+                            <td class="py-4 text-erp-gold font-mono font-medium">{{ acc.account_code }}</td>
+                            <td class="py-4 text-white font-medium">{{ acc.account_name }}</td>
+                            <td class="py-4">
+                                <span class="px-2 py-1 rounded text-xs font-semibold 
+                                    {% if acc.account_type == 'ASSET' %}bg-blue-500/20 text-blue-400
+                                    {% elif acc.account_type == 'LIABILITY' %}bg-red-500/20 text-red-400
+                                    {% elif acc.account_type == 'EQUITY' %}bg-purple-500/20 text-purple-400
+                                    {% elif acc.account_type == 'REVENUE' %}bg-green-500/20 text-green-400
+                                    {% else %}bg-yellow-500/20 text-yellow-400{% endif %}">
+                                    {{ acc.account_type }}
+                                </span>
+                            </td>
+                            <td class="py-4 text-right text-white font-mono">{{ "{:,.2f}".format(acc.balance) }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="py-8 text-center text-gray-500">
+                                <i class="fas fa-book text-3xl mb-3 block text-erp-border"></i>
+                                No accounts found. Create your first chart of accounts entry.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

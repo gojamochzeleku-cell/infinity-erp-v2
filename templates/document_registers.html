@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block page_title %}Document Registers{% endblock %}
+{% block content %}
+<div class="space-y-6 pb-24" x-data="{ activeTab: 'incoming' }">
+    <div class="bg-gradient-to-r from-erp-card to-erp-dark border border-erp-border rounded-2xl p-6">
+        <h1 class="text-2xl font-bold text-white mb-1">Digital Forms & Registers</h1>
+        <p class="text-erp-gold font-semibold">DM-001 to DM-007 Compliance Tracking</p>
+    </div>
+
+    {% if request.query_params.get('msg') %}
+    <div class="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 rounded-lg">{{ request.query_params.get('msg') }}</div>
+    {% endif %}
+
+    <!-- Tabs -->
+    <div class="border-b border-erp-border">
+        <nav class="flex space-x-8 overflow-x-auto">
+            <button @click="activeTab = 'incoming'" :class="activeTab === 'incoming' ? 'border-erp-gold text-erp-gold' : 'border-transparent text-gray-400'" class="py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap">DM-001: Incoming Register</button>
+            <button @click="activeTab = 'movement'" :class="activeTab === 'movement' ? 'border-erp-gold text-erp-gold' : 'border-transparent text-gray-400'" class="py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap">DM-002: Movement Log</button>
+            <button @click="activeTab = 'checklist'" :class="activeTab === 'checklist' ? 'border-erp-gold text-erp-gold' : 'border-transparent text-gray-400'" class="py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap">DM-006: Daily Checklist</button>
+        </nav>
+    </div>
+
+    <!-- DM-001: Incoming Documents Register -->
+    <div x-show="activeTab === 'incoming'" x-cloak class="space-y-6">
+        <div class="bg-erp-card border border-erp-border rounded-xl p-5">
+            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Log New Incoming Document</h3>
+            <form action="/api/registers/log-incoming" method="POST" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <input type="text" name="sender" required placeholder="Sender (e.g., MoR)" class="bg-erp-black border border-erp-border rounded px-3 py-2 text-sm text-white">
+                <input type="text" name="description" required placeholder="Description" class="bg-erp-black border border-erp-border rounded px-3 py-2 text-sm text-white">
+                <select name="department" class="bg-erp-black border border-erp-border rounded px-3 py-2 text-sm text-white">
+                    <option value="Bid">Bid / Tender</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Operations">Operations / Import</option>
+                    <option value="HR">HR / Admin</option>
+                </select>
+                <button type="submit" class="bg-erp-gold text-black font-bold py-2 rounded text-sm">Log Document</button>
+            </form>
+        </div>
+
+        <div class="bg-erp-card border border-erp-border rounded-xl overflow-hidden">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-erp-black/50 text-gray-400 uppercase">
+                    <tr>
+                        <th class="px-4 py-3">Temp Doc #</th>
+                        <th class="px-4 py-3">Date/Time</th>
+                        <th class="px-4 py-3">Sender</th>
+                        <th class="px-4 py-3">Description</th>
+                        <th class="px-4 py-3">Department</th>
+                        <th class="px-4 py-3">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-erp-border">
+                    {% for doc in incoming_docs %}
+                    <tr class="hover:bg-erp-black/30">
+                        <td class="px-4 py-3 font-mono text-erp-gold">{{ doc.temp_doc_number }}</td>
+                        <td class="px-4 py-3 text-gray-400">{{ doc.received_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td class="px-4 py-3 text-white">{{ doc.sender }}</td>
+                        <td class="px-4 py-3 text-white">{{ doc.description }}</td>
+                        <td class="px-4 py-3"><span class="px-2 py-1 rounded bg-blue-500/20 text-blue-400 text-xs">{{ doc.department }}</span></td>
+                        <td class="px-4 py-3"><span class="px-2 py-1 rounded bg-yellow-500/20 text-yellow-400 text-xs">{{ doc.status }}</span></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">No incoming documents logged today.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- DM-002: Document Movement Log -->
+    <div x-show="activeTab === 'movement'" x-cloak class="space-y-6">
+        <div class="bg-erp-card border border-erp-border rounded-xl overflow-hidden">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-erp-black/50 text-gray-400 uppercase">
+                    <tr>
+                        <th class="px-4 py-3">Document Reference</th>
+                        <th class="px-4 py-3">Requester</th>
+                        <th class="px-4 py-3">Purpose</th>
+                        <th class="px-4 py-3">Date Out</th>
+                        <th class="px-4 py-3">Expected Return</th>
+                        <th class="px-4 py-3">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-erp-border">
+                    {% for mov in movements %}
+                    <tr class="hover:bg-erp-black/30">
+                        <td class="px-4 py-3 font-mono text-white text-xs">{{ mov.doc_reference }}</td>
+                        <td class="px-4 py-3 text-white">{{ mov.requester }}</td>
+                        <td class="px-4 py-3 text-gray-400">{{ mov.purpose }}</td>
+                        <td class="px-4 py-3 text-gray-400">{{ mov.date_out.strftime('%Y-%m-%d') }}</td>
+                        <td class="px-4 py-3 text-gray-400">{{ mov.expected_return.strftime('%Y-%m-%d') if mov.expected_return else 'N/A' }}</td>
+                        <td class="px-4 py-3">
+                            {% if mov.status == 'CHECKED_OUT' %}
+                            <form action="/api/registers/check-in/{{ mov.id }}" method="POST" class="inline">
+                                <button type="submit" class="bg-green-500/20 text-green-400 border border-green-500/30 px-3 py-1 rounded text-xs font-bold hover:bg-green-500/30">Check In</button>
+                            </form>
+                            {% else %}
+                            <span class="text-green-400 text-xs font-bold"><i class="fas fa-check mr-1"></i> Returned</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">No documents currently checked out.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- DM-006: Daily Filing Checklist -->
+    <div x-show="activeTab === 'checklist'" x-cloak class="space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Checklist Form -->
+            <div class="lg:col-span-1 bg-erp-card border border-erp-border rounded-xl p-5">
+                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">End-of-Day Filing Checklist</h3>
+                <form action="/api/registers/submit-checklist" method="POST" class="space-y-3">
+                    <label class="flex items-center space-x-3 text-sm text-white cursor-pointer">
+                        <input type="checkbox" name="all_logged" value="on" class="form-checkbox text-erp-gold rounded bg-erp-black border-erp-border">
+                        <span>All documents logged in Incoming Register</span>
+                    </label>
+                    <label class="flex items-center space-x-3 text-sm text-white cursor-pointer">
+                        <input type="checkbox" name="all_scanned" value="on" class="form-checkbox text-erp-gold rounded bg-erp-black border-erp-border">
+                        <span>All documents scanned to digital folder</span>
+                    </label>
+                    <label class="flex items-center space-x-3 text-sm text-white cursor-pointer">
+                        <input type="checkbox" name="all_filed" value="on" class="form-checkbox text-erp-gold rounded bg-erp-black border-erp-border">
+                        <span>All processed documents physically filed</span>
+                    </label>
+                    <label class="flex items-center space-x-3 text-sm text-white cursor-pointer">
+                        <input type="checkbox" name="index_updated" value="on" class="form-checkbox text-erp-gold rounded bg-erp-black border-erp-border">
+                        <span>Master Document Index updated</span>
+                    </label>
+                    <label class="flex items-center space-x-3 text-sm text-white cursor-pointer">
+                        <input type="checkbox" name="cabinets_locked" value="on" class="form-checkbox text-erp-gold rounded bg-erp-black border-erp-border">
+                        <span>Filing & Fireproof cabinets locked</span>
+                    </label>
+                    <label class="flex items-center space-x-3 text-sm text-white cursor-pointer">
+                        <input type="checkbox" name="supplies_checked" value="on" class="form-checkbox text-erp-gold rounded bg-erp-black border-erp-border">
+                        <span>Printer paper/toner levels checked</span>
+                    </label>
+                    <button type="submit" class="w-full bg-erp-gold text-black font-bold py-2 rounded mt-4">Sign & Submit Checklist</button>
+                </form>
+            </div>
+
+            <!-- Checklist History -->
+            <div class="lg:col-span-2 bg-erp-card border border-erp-border rounded-xl p-5">
+                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Recent Checklist History</h3>
+                <div class="space-y-3">
+                    {% for cl in checklists %}
+                    <div class="bg-erp-black/50 p-4 rounded-lg border border-erp-border flex justify-between items-center">
+                        <div>
+                            <p class="text-white font-medium">{{ cl.checklist_date.strftime('%Y-%m-%d') }}</p>
+                            <p class="text-gray-500 text-xs">Completed by: {{ emp_names.get(cl.completed_by, 'Unknown') }}</p>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-500/20 text-green-400">
+                            <i class="fas fa-check-circle mr-1"></i> Signed
+                        </span>
+                    </div>
+                    {% else %}
+                    <p class="text-gray-500 text-center py-8">No checklists submitted yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
