@@ -231,5 +231,32 @@
             </nav>
         </div>
     </div>
+
+    <script>
+        function updateInfinityClock() {
+            const now = new Date();
+            
+            // Format Time (HH:MM:SS)
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const timeString = `${hours}:${minutes}:${seconds}`;
+            
+            // Format Date (e.g., Wed, Oct 21, 2026)
+            const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+            const dateString = now.toLocaleDateString('en-US', options);
+            
+            // Update DOM
+            const timeEl = document.getElementById('erp-clock-time');
+            const dateEl = document.getElementById('erp-clock-date');
+            if (timeEl) timeEl.textContent = timeString;
+            if (dateEl) dateEl.textContent = dateString;
+        }
+        
+        // Initialize and update every second
+        updateInfinityClock();
+        setInterval(updateInfinityClock, 1000);
+    </script>
+
 </body>
 </html>
