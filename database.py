@@ -6,8 +6,7 @@ from sqlalchemy.orm import sessionmaker
 # Use PostgreSQL in production (Render), SQLite in local development
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./infinity_erp.db")
 
-# Render/Neon provides 'postgres://' or 'postgresql://' but we need to tell 
-# SQLAlchemy 2.0 to use the psycopg2 driver which is already installed.
+# Fix Render/Neon URL formats to use psycopg2
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
 elif DATABASE_URL.startswith("postgresql://"):
@@ -16,7 +15,8 @@ elif DATABASE_URL.startswith("postgresql://"):
 if DATABASE_URL.startswith("sqlite"):
     engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 else:
-    engine = create_engine(DATABASE_URL)
+    # CRITICAL: Cloud databases (Render, Neon) REQUIRE SSL connections
+    engine = create_engine(DATABASE_URL, connect_args={"sslmode": "require"})
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
