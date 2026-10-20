@@ -1,12 +1,12 @@
 import os
-import time
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./infinity_erp.db")
 
+# Ensure correct driver
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
 elif DATABASE_URL.startswith("postgresql://"):
@@ -15,22 +15,21 @@ elif DATABASE_URL.startswith("postgresql://"):
 if DATABASE_URL.startswith("sqlite"):
     engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 else:
+    # Fix Neon-specific SSL and channel_binding issues
     url_parts = urlparse(DATABASE_URL)
     query = parse_qs(url_parts.query)
     query['sslmode'] = ['require']
+    query['channel_binding'] = ['disable'] # Crucial fix for psycopg2 on Neon
     DATABASE_URL = urlunparse(url_parts._replace(query=urlencode(query, doseq=True)))
-    engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_timeout=30)
-
-    # ☁️ WARM-UP: Gently wake the sleeping cloud database with retries
-    for attempt in range(1, 8):
-        try:
-            with engine.connect() as conn:
-                conn.execute(text("SELECT 1"))
-            print("✅ Cloud database is awake and connected.")
-            break
-        except Exception as e:
-            print(f"⏳ Waking database... attempt {attempt}/7 ({type(e).__name__})")
-            time.sleep(4)
+    
+    # pool_pre_ping=True automatically tests connections before use.
+    # NO manual warm-up at import time to prevent Gunicorn fork connection corruption!
+    engine = create_engine(
+        DATABASE_URL, 
+        pool_pre_ping=True, 
+        pool_size=5, 
+        max_overflow=10
+    )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
